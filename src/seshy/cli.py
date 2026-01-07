@@ -166,6 +166,9 @@ cli.add_command(delete, name="rm")
 def main():
     try:
         cli(standalone_mode=False)
+    except click.ClickException as e:
+        e.show()
+        sys.exit(e.exit_code)
     except click.Abort:
         click.echo("\nAborted.")
         sys.exit(130)
