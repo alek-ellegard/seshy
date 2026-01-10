@@ -1,0 +1,10 @@
+goal: Complete bash-to-Python migration for seshy
+intention: Make seshy standalone with externalized config
+functionalities:
+  - Externalize config to ~/.config/seshy/config.toml
+  - Auto-create config with defaults on first run
+  - Archive bash scripts to ~/.config/sesh/archive/
+acceptance_criteria:
+  - Seshy works without runtime dependency on bash scripts
+  - BASE_PATHS and ICONS_LIST configurable via config.toml
+  - Existing CLI commands unchanged
