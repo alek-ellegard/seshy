@@ -1,11 +1,11 @@
 ---
-title: "Research: {Feature Name}"
+title: "Research: Archive Bash Scripts"
 phase: "research"
-created: "YYYY-MM-DD"
+created: "2026-01-10"
 research_score: 0
 ---
 
-# Research: {Feature Name}
+# Research: Archive Bash Scripts
 
 ## 1. Intent Capture
 
@@ -13,27 +13,25 @@ research_score: 0
 
 **Why this needs building** (not what to build):
 
-{The underlying "why" - describe the problem, not the solution}
+The bash scripts in `~/.config/sesh/` are legacy artifacts from before the Python CLI existed. They create confusion about which tool to use and maintenance burden (two implementations). Archiving them completes the migration to Python as the single source of truth.
 
 ### Success Criteria
 
-{Observable, measurable outcomes that prove success}
-
-1. {Success criterion 1 - specific, testable}
-2. {Success criterion 2 - specific, testable}
+1. Bash scripts moved to `~/.config/sesh/archive/` (not deleted, preserved for reference)
+2. Archive directory structure mirrors original (lib/ subdirectory preserved)
+3. Original locations cleared (no scripts remain in active paths)
 
 ### Failure Modes
 
-{Specific anti-patterns that must be prevented}
-
-1. **{Failure mode 1}**: {Specific scenario that would constitute failure}
-2. **{Failure mode 2}**: {Specific scenario that would constitute failure}
+1. **Data loss**: Scripts deleted instead of archived - must preserve for rollback
+2. **Broken shell**: User's `.zshrc` still sources archived path, causing shell errors
+3. **Incomplete archive**: Some files missed, leaving partial legacy state
 
 ### Value Proposition
 
-**Before**: {Current state - what's painful/missing}
+**Before**: Two implementations exist (bash + Python), scripts sourced in `.zshrc`, confusion about which to use
 
-**After**: {Future state - what success looks like}
+**After**: Scripts safely archived, Python CLI is sole implementation, clear migration path
 
 ---
 
@@ -45,72 +43,107 @@ research_score: 0
 
 | Entity | Description | Relationships |
 |--------|-------------|---------------|
-| {Entity 1} | {What it is} | {How it relates} |
+| `functions.sh` | Main entry point (3.6k) | Sources lib/ui.sh, lib/fzf-helpers.sh |
+| `fzf-config.sh` | fzf configuration (898 bytes) | Standalone |
+| `lib/ui.sh` | UI helpers (2.4k) | Sourced by functions.sh |
+| `lib/fzf-helpers.sh` | fzf helpers (12k) | Sourced by functions.sh |
 
 **Domain invariants** (what must always be true):
-- {Invariant 1}
+- Archive preserves exact file contents (no modification)
+- Archive preserves directory structure
 
 ### Dependencies
 
 **Upstream** (what we depend on):
-- {Dependency 1} - {How it affects us}
+- None - this is a standalone file operation
 
 **Downstream** (what depends on us):
-- {Dependent 1} - {How we affect it}
+- User's `.zshrc` sources `~/.config/sesh/functions.sh` (line 530)
+- Aliases in `.zshrc`: `sesh-new`, `linsesh`
 
 ### Constraints
 
 **Technical**:
-- {Constraint 1}
+- No seshy CLI changes required (this is a file operation)
+- Python can execute this via `shutil` or subprocess
 
 **Business/Resource**:
-- {Constraint 1}
+- User must manually update `.zshrc` after archive (out of scope for this feature)
 
 ### Current State Validation
 
 | Assumption | Validation Command | Expected | Actual |
 |------------|-------------------|----------|--------|
-| {Assumption} | `{command}` | {expected} | {actual} |
+| Scripts exist | `ls ~/.config/sesh/*.sh` | files exist | functions.sh, fzf-config.sh exist |
+| lib/ exists | `ls ~/.config/sesh/lib/` | files exist | ui.sh, fzf-helpers.sh exist |
+| Archive doesn't exist | `ls ~/.config/sesh/archive/` | not found | not found (confirmed) |
+| .zshrc sources scripts | `grep functions.sh ~/.zshrc` | found | line 530: `source ~/.config/sesh/functions.sh` |
 
-**Baseline verified**: {Yes/No - date}
+**Baseline verified**: Yes - 2026-01-10
 
 ---
 
 ## 3. Solution Space Exploration
 
-### Approach 1: {Name}
+### Approach 1: Manual archive command
 
-**Description**: {High-level description}
-
-**Pros**:
-- {Pro 1}
-
-**Cons**:
-- {Con 1}
-
-**Unknowns**:
-- {Unknown 1}
-
-### Approach 2: {Name}
-
-**Description**: {High-level description}
+**Description**: Add `seshy archive` CLI command that moves scripts to archive/
 
 **Pros**:
-- {Pro 1}
+- User-initiated, explicit action
+- Can provide confirmation prompt
+- Can output instructions for .zshrc update
 
 **Cons**:
-- {Con 1}
+- Adds new CLI command (scope creep)
+- User must remember to run it
 
 **Unknowns**:
-- {Unknown 1}
+- Should it be idempotent (safe to run multiple times)?
+
+### Approach 2: One-time migration script
+
+**Description**: Standalone Python/bash script that archives scripts, run once
+
+**Pros**:
+- No CLI changes
+- Clear single-purpose tool
+- Can be run independently
+
+**Cons**:
+- Another script to maintain
+- User must find and run it
+
+**Unknowns**:
+- Where to put the script?
+
+### Approach 3: Document manual steps
+
+**Description**: Just document the `mv` commands in README, user executes manually
+
+**Pros**:
+- Zero code changes
+- User has full control
+- Simplest implementation
+
+**Cons**:
+- Friction for user
+- Easy to make mistakes
+
+**Unknowns**:
+- None
 
 ### Selected Approach
 
-**Choice**: Approach {N} - {Name}
+**Choice**: Approach 1 - Manual archive command (`seshy archive`)
 
-**Rationale**: {Why this approach, referencing intent and context}
+**Rationale**:
+- Consistent with seshy being the single tool for session management
+- Can provide helpful output about .zshrc changes needed
+- Idempotent and safe to run multiple times
+- Follows existing CLI patterns
 
-**Trade-offs accepted**: {What we're giving up}
+**Trade-offs accepted**: Adds one more subcommand to CLI
 
 ---
 
@@ -120,62 +153,74 @@ research_score: 0
 
 | Unknown | Investigation Plan | Priority |
 |---------|-------------------|----------|
-| {Unknown 1} | {How to investigate} | {High/Medium/Low} |
+| Should archive command be idempotent? | Design decision - yes, skip if already archived | Medium |
+| Should we backup before archiving? | Archive IS the backup, no double-backup needed | Low |
 
 ### Implicit Assumption Audit
 
 | Assumption | Category | Validation Command | Risk if Wrong |
 |------------|----------|-------------------|---------------|
-| {Assumption 1} | Baseline | `{command}` | {Impact} |
+| Scripts exist at expected paths | Baseline | `ls ~/.config/sesh/*.sh` | Command fails gracefully |
+| User has write permission | Environmental | `touch ~/.config/sesh/archive/.test` | Permission error |
+| No other tools depend on scripts | Behavioral | Manual review | Other tooling breaks |
 
 ### Assumptions Validated
 
-- [ ] {Pending assumption}
+- [x] Scripts exist at `~/.config/sesh/`
+- [x] lib/ subdirectory exists with ui.sh, fzf-helpers.sh
+- [x] Archive directory does not exist yet
+- [x] .zshrc sources functions.sh (user will need to update)
+- [ ] User has write permissions (assume yes for own home directory)
 
 ---
 
 ## 5. Research Quality Checklist
 
 ### Intent Completeness
-- [ ] Core need states "why" not just "what"
-- [ ] Success criteria are measurable and observable
-- [ ] Failure modes list concrete anti-patterns
-- [ ] Value proposition compares before/after states
+- [x] Core need states "why" not just "what"
+- [x] Success criteria are measurable and observable
+- [x] Failure modes list concrete anti-patterns
+- [x] Value proposition compares before/after states
 
-**Grade**: {A|B|C|D|F} ({score}/4)
+**Grade**: A (4/4)
 
 ### Context Completeness
-- [ ] Domain entities and relationships mapped
-- [ ] Dependencies documented
-- [ ] Constraints explicit
-- [ ] Current state validated
-- [ ] Baseline documented
+- [x] Domain entities and relationships mapped
+- [x] Dependencies documented
+- [x] Constraints explicit
+- [x] Current state validated
+- [x] Baseline documented
 
-**Grade**: {A|B|C|D|F} ({score}/5)
+**Grade**: A (5/5)
 
 ### Solution Space Completeness
-- [ ] Multiple approaches considered
-- [ ] Trade-offs explicit for each approach
-- [ ] Selected approach rationale documented
-- [ ] Unknowns identified
+- [x] Multiple approaches considered
+- [x] Trade-offs explicit for each approach
+- [x] Selected approach rationale documented
+- [x] Unknowns identified
 
-**Grade**: {A|B|C|D|F} ({score}/4)
+**Grade**: A (4/4)
 
 ### Knowledge Gaps Completeness
-- [ ] Implicit Assumption Audit completed
-- [ ] Known unknowns listed
-- [ ] Assumptions explicit with validation strategies
-- [ ] Risk assessed for each assumption
+- [x] Implicit Assumption Audit completed
+- [x] Known unknowns listed
+- [x] Assumptions explicit with validation strategies
+- [x] Risk assessed for each assumption
 
-**Grade**: {A|B|C|D|F} ({score}/4)
+**Grade**: A (4/4)
 
 ---
 
 ## Overall Research Quality Score
 
-**Total**: {sum}/17 = **{percentage}%**
+**Total**: 17/17 = **100%**
 
-**Ready for planning**: {Yes/No}
+**Ready for planning**: Yes
 
-**If No, what's needed**:
-- {Gap to address}
+**Files to archive**:
+```
+~/.config/sesh/functions.sh      → ~/.config/sesh/archive/functions.sh
+~/.config/sesh/fzf-config.sh     → ~/.config/sesh/archive/fzf-config.sh
+~/.config/sesh/lib/ui.sh         → ~/.config/sesh/archive/lib/ui.sh
+~/.config/sesh/lib/fzf-helpers.sh → ~/.config/sesh/archive/lib/fzf-helpers.sh
+```

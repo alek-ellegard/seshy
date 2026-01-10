@@ -155,6 +155,42 @@ def delete():
         click.echo("Aborted.")
 
 
+@cli.command()
+def archive():
+    """Archive legacy bash scripts to ~/.config/sesh/archive/."""
+    from .workflows.archive import archive_scripts
+
+    click.echo("Archiving legacy bash scripts...")
+    result = archive_scripts()
+
+    if result.already_archived:
+        click.echo("Scripts already archived. Nothing to do.")
+        return
+
+    if result.files_moved:
+        click.echo(f"\nMoved {len(result.files_moved)} file(s):")
+        for f in result.files_moved:
+            click.echo(f"  {f}")
+
+    if result.files_skipped:
+        click.echo(f"\nSkipped {len(result.files_skipped)} file(s):")
+        for f in result.files_skipped:
+            click.echo(f"  {f}")
+
+    if result.warnings:
+        click.echo("\nWarnings:", err=True)
+        for w in result.warnings:
+            click.echo(f"  {w}", err=True)
+
+    if result.success:
+        click.echo("\nArchive complete.")
+        click.echo("\nIMPORTANT: Update your ~/.zshrc to remove:")
+        click.echo("  source ~/.config/sesh/functions.sh")
+    else:
+        click.echo("\nArchive completed with errors.", err=True)
+        sys.exit(1)
+
+
 # Aliases
 cli.add_command(add_cmd, name="a")
 cli.add_command(list_cmd, name="ls")
