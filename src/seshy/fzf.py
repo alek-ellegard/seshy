@@ -4,16 +4,7 @@ import os
 import subprocess
 from pathlib import Path
 
-ICONS_LIST = [
-    "💻", "🚀", "🔧", "📦", "🎯", "⚡", "🌟", "🔥", "💡",
-    "📊", "🎨", "🏗️", "🧪", "📱", "🌐", "🤖"
-]
-
-BASE_PATHS = [
-    "~/code",
-    "~/code/work",
-    "~/code/personal",
-]
+from .config import get_base_paths, get_icons
 
 
 def fzf_select(items: list[str], prompt: str = "> ") -> str | None:
@@ -38,12 +29,12 @@ def fzf_select(items: list[str], prompt: str = "> ") -> str | None:
 
 def fzf_select_icon() -> str | None:
     """Select icon from list."""
-    return fzf_select(ICONS_LIST, "icon> ")
+    return fzf_select(get_icons(), "icon> ")
 
 
 def fzf_select_base_path() -> str | None:
     """Select from configured base paths."""
-    expanded = [os.path.expanduser(p) for p in BASE_PATHS]
+    expanded = [os.path.expanduser(p) for p in get_base_paths()]
     return fzf_select(expanded, "base> ")
 
 

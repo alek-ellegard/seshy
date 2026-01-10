@@ -1,48 +1,14 @@
 """Seshy CLI - manage sesh.toml sessions."""
 
 import os
-import subprocess
 import sys
 
 import click
 
-from .fzf import fzf_select, fzf_select_icon, fzf_select_path_recursive
-from .toml_ops import (
-    SESH_TOML_PATH,
-    add_session,
-    delete_session,
-    find_next_5x_number,
-    generate_session_block,
-    get_session_line_number,
-    list_sessions,
-)
-
-DEFAULT_ICON = "💻"
-
-
-def get_parent_dir_name() -> str:
-    """Get parent directory name as project name."""
-    return os.path.basename(os.getcwd())
-
-
-def get_cwd_as_path() -> str:
-    """Get current working directory in ~ format."""
-    cwd = os.getcwd()
-    home = os.path.expanduser("~")
-    if cwd.startswith(home):
-        return "~" + cwd[len(home):]
-    return cwd
-
-
-def preview_session(name: str, path: str, icon: str, number: int) -> str:
-    """Generate preview of session to be added."""
-    return generate_session_block(name, path, icon, number)
-
-
-def confirm(prompt: str = "Proceed?") -> bool:
-    """Ask for Y/n confirmation."""
-    response = input(f"{prompt} [Y/n] ").strip().lower()
-    return response in ("", "y", "yes")
+from .fzf import fzf_select
+from .toml_ops import SESH_TOML_PATH, get_session_line_number, list_sessions
+from .workflows import add as add_workflow
+from .workflows import delete as delete_workflow
 
 
 @click.group()
@@ -55,43 +21,7 @@ def cli():
 @click.option("-q", "--quick", is_flag=True, help="Quick mode: auto-fill from cwd")
 def add_cmd(quick: bool):
     """Add a new session to sesh.toml."""
-    if quick:
-        # Quick mode - auto-fill from current directory
-        name = get_parent_dir_name()
-        path = get_cwd_as_path()
-        icon = DEFAULT_ICON
-        number = find_next_5x_number()
-
-    else:
-        # Interactive mode
-        name = click.prompt("Session name")
-
-        click.echo("\nSelect project path...")
-        path = fzf_select_path_recursive()
-        if not path:
-            click.echo("No path selected, aborting.", err=True)
-            sys.exit(1)
-
-        click.echo("\nSelect icon...")
-        icon = fzf_select_icon()
-        if not icon:
-            click.echo(f"No icon selected, using default {DEFAULT_ICON}")
-            icon = DEFAULT_ICON
-
-        number = click.prompt("Session number", type=int)
-
-    # Show preview
-    click.echo("\n" + "=" * 40)
-    click.echo("Preview:")
-    click.echo("=" * 40)
-    click.echo(preview_session(name, path, icon, number))
-    click.echo("=" * 40 + "\n")
-
-    if confirm("Add this session?"):
-        add_session(name, path, icon, number)
-        click.echo(f"Added session: {number} {name} {icon}")
-    else:
-        click.echo("Aborted.")
+    add_workflow.run(quick)
 
 
 @cli.command("list")
@@ -132,63 +62,7 @@ def update():
 @cli.command()
 def delete():
     """Select a session and delete it (with associated windows)."""
-    sessions = list_sessions()
-    if not sessions:
-        click.echo("No sessions found.", err=True)
-        sys.exit(1)
-
-    selected = fzf_select(sessions, "delete> ")
-    if not selected:
-        click.echo("No session selected.", err=True)
-        sys.exit(1)
-
-    click.echo(f"\nAbout to delete session: {selected}")
-    click.echo("This will also remove associated [[window]] blocks.\n")
-
-    if confirm("Delete this session?"):
-        if delete_session(selected):
-            click.echo(f"Deleted session: {selected}")
-        else:
-            click.echo(f"Failed to delete session: {selected}", err=True)
-            sys.exit(1)
-    else:
-        click.echo("Aborted.")
-
-
-@cli.command()
-def archive():
-    """Archive legacy bash scripts to ~/.config/sesh/archive/."""
-    from .workflows.archive import archive_scripts
-
-    click.echo("Archiving legacy bash scripts...")
-    result = archive_scripts()
-
-    if result.already_archived:
-        click.echo("Scripts already archived. Nothing to do.")
-        return
-
-    if result.files_moved:
-        click.echo(f"\nMoved {len(result.files_moved)} file(s):")
-        for f in result.files_moved:
-            click.echo(f"  {f}")
-
-    if result.files_skipped:
-        click.echo(f"\nSkipped {len(result.files_skipped)} file(s):")
-        for f in result.files_skipped:
-            click.echo(f"  {f}")
-
-    if result.warnings:
-        click.echo("\nWarnings:", err=True)
-        for w in result.warnings:
-            click.echo(f"  {w}", err=True)
-
-    if result.success:
-        click.echo("\nArchive complete.")
-        click.echo("\nIMPORTANT: Update your ~/.zshrc to remove:")
-        click.echo("  source ~/.config/sesh/functions.sh")
-    else:
-        click.echo("\nArchive completed with errors.", err=True)
-        sys.exit(1)
+    delete_workflow.run()
 
 
 # Aliases

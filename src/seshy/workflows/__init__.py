@@ -1,1 +1,1 @@
-"""Seshy workflows - business logic for CLI commands."""
+"""Workflow modules for seshy commands."""
