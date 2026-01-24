@@ -1,8 +1,20 @@
-# Seshy
+# CLAUDE.md
 
-CLI for managing sesh.toml tmux sessions.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Overview
+
+Seshy is a Python CLI for managing tmux sessions defined in `~/.config/sesh/sesh.toml`.
 
 ## Commands
+
+```bash
+# Install for development
+uv tool install -e .
+
+# Or via Makefile
+make install-edit
+```
 
 | Command | Alias | Description |
 |---------|-------|-------------|
@@ -21,17 +33,38 @@ Auto-fills session from current directory:
 - **icon**: default 💻
 - **number**: next available in 50-range (51, 52, 53...)
 
-## Project Structure
+## Architecture
 
 ```
 src/seshy/
-├── cli.py        # Click CLI commands
-├── toml_ops.py   # TOML parsing/modification
-└── fzf.py        # fzf subprocess helpers
+├── cli.py        # Click CLI entry point (thin layer, delegates to workflows)
+├── models.py     # Data models (native Python classes, StrEnum for enums)
+├── utils.py      # Pure utility functions
+├── ui.py         # User interaction (prompts, fzf, display)
+├── toml_ops.py   # TOML parsing with tomlkit (preserves formatting)
+└── workflows/    # Business logic, one file per feature
+    ├── add.py
+    ├── delete.py
+    └── ...
 ```
 
-## Install
+**Data flow**: cli.py → workflows/*.py → ui.py (user interaction) → toml_ops.py (persistence)
 
-```bash
-uv tool install -e .
-```
+## Code Principles
+
+- **Types**: Use native Python classes and `StrEnum` for type safety
+- **Separation**: Models in models.py, utilities in utils.py, UI in ui.py
+- **Workflows**: Each feature gets its own file in `workflows/`
+- **CLI layer**: Thin - parse args, call workflow, handle errors
+
+**Key constants** in toml_ops.py:
+- `SESH_TOML_PATH`: `~/.config/sesh/sesh.toml`
+- `DEFAULT_WINDOWS`: `["editor", "dual", "lazydocker", "lazygit"]`
+- `WINDOW_SCRIPTS`: Maps window names to startup scripts
+
+## Workflow Tools
+
+- **Package management**: `uv` (astral) with pyproject.toml
+- **Issue tracking**: `bd` (beads) - git-backed issue tracker
+- **Sprint management**: `/sam` plugin - manages `.sam/` for sprints and features
+- **Agent coordination**: agent-mail MCP server for multi-agent collaboration
