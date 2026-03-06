@@ -49,7 +49,10 @@ def fzf_navigate_recursive(start_path: str) -> str | None:
         # List directories + '.' option
         items = ["."]  # Select current
         try:
-            dirs = sorted([d.name for d in current.iterdir() if d.is_dir() and not d.name.startswith(".")])
+            dirs = sorted(
+                d.name for d in current.iterdir()
+                if d.is_dir() and not d.name.startswith(".")
+            )
             items.extend(dirs)
         except PermissionError:
             pass

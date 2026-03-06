@@ -27,23 +27,26 @@ class AliasGroup(click.Group):
         if cmd:
             self.add_command(cmd, name=alias)
 
+    def list_commands(self, ctx):
+        """Exclude aliases from command listing."""
+        return [
+            name for name in super().list_commands(ctx)
+            if name not in self._aliases
+        ]
+
     def format_commands(self, ctx, formatter):
         """Format commands with aliases shown on same line."""
         commands = []
-        # Build reverse mapping: canonical -> [aliases]
         alias_map: dict[str, list[str]] = {}
         for alias, canonical in self._aliases.items():
             alias_map.setdefault(canonical, []).append(alias)
 
-        for name, cmd in self.commands.items():
-            # Skip aliases in the main listing
-            if name in self._aliases:
-                continue
-
+        for name in self.list_commands(ctx):
+            cmd = self.commands[name]
             help_text = cmd.get_short_help_str(limit=formatter.width)
             aliases = alias_map.get(name, [])
             if aliases:
-                display_name = f"{aliases[0]} / {name}"
+                display_name = f"{name}|{aliases[0]}"
             else:
                 display_name = name
             commands.append((display_name, help_text))

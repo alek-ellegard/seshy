@@ -137,7 +137,6 @@ def delete_session(name: str) -> bool:
             break
 
     # Find end of session (next [[session]] or EOF)
-    in_session_windows = True
     window_count_seen = 0
 
     for i in range(session_start + 1, len(lines)):
