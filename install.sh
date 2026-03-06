@@ -19,4 +19,8 @@ git clone --depth 1 "$REPO" "$TMP_DIR"
 echo "Installing..."
 uv tool install "$TMP_DIR"
 
+echo ""
 echo "Done! Run 'seshy --help' to get started."
+echo ""
+echo "To enable tmux window functions, add to your shell config:"
+echo '  source "$(seshy shell-path)"'
