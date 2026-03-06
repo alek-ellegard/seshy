@@ -65,6 +65,8 @@ src/seshy/
 ## Workflow Tools
 
 - **Package management**: `uv` (astral) with pyproject.toml
-- **Issue tracking**: `bd` (beads) - git-backed issue tracker
 - **Sprint management**: `/sam` plugin - manages `.sam/` for sprints and features
-- **Agent coordination**: agent-mail MCP server for multi-agent collaboration
+
+## Codebase Map
+
+For comprehensive architecture documentation, data flow diagrams, and navigation guide, see `docs/CODEBASE_MAP.md`.

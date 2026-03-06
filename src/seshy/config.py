@@ -63,3 +63,9 @@ def get_default_icon() -> str:
     """Get default icon for new sessions."""
     config = _load_config()
     return str(config.get("icons", {}).get("default", DEFAULT_ICON))
+
+
+def get_startup_groups() -> dict[str, list[str]]:
+    """Get startup groups mapping group names to session patterns."""
+    config = _load_config()
+    return dict(config.get("groups", {}))

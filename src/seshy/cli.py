@@ -9,9 +9,51 @@ from .fzf import fzf_select
 from .toml_ops import SESH_TOML_PATH, get_session_line_number, list_sessions
 from .workflows import add as add_workflow
 from .workflows import delete as delete_workflow
+from .workflows import startup as startup_workflow
 
 
-@click.group()
+class AliasGroup(click.Group):
+    """Click group that displays aliases alongside commands."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._aliases: dict[str, str] = {}  # alias -> canonical name
+
+    def add_alias(self, name: str, alias: str) -> None:
+        """Register an alias for a command."""
+        self._aliases[alias] = name
+        # Add the alias as a command that points to the original
+        cmd = self.commands.get(name)
+        if cmd:
+            self.add_command(cmd, name=alias)
+
+    def format_commands(self, ctx, formatter):
+        """Format commands with aliases shown on same line."""
+        commands = []
+        # Build reverse mapping: canonical -> [aliases]
+        alias_map: dict[str, list[str]] = {}
+        for alias, canonical in self._aliases.items():
+            alias_map.setdefault(canonical, []).append(alias)
+
+        for name, cmd in self.commands.items():
+            # Skip aliases in the main listing
+            if name in self._aliases:
+                continue
+
+            help_text = cmd.get_short_help_str(limit=formatter.width)
+            aliases = alias_map.get(name, [])
+            if aliases:
+                display_name = f"{aliases[0]} / {name}"
+            else:
+                display_name = name
+            commands.append((display_name, help_text))
+
+        if commands:
+            with formatter.section("Commands"):
+                formatter.write_dl(commands)
+
+
+@click.group(cls=AliasGroup)
 def cli():
     """Seshy - manage sesh.toml tmux sessions."""
     pass
@@ -65,12 +107,30 @@ def delete():
     delete_workflow.run()
 
 
+@cli.command()
+@click.argument("group", required=False)
+def startup(group: str | None):
+    """Launch all sessions in a named group."""
+    startup_workflow.run(group)
+
+
+@cli.command("shell-path")
+def shell_path():
+    """Print path to shell functions for sourcing."""
+    from pathlib import Path
+
+    pkg_dir = Path(__file__).parent
+    functions_path = pkg_dir / "shell" / "functions.sh"
+    click.echo(functions_path)
+
+
 # Aliases
-cli.add_command(add_cmd, name="a")
-cli.add_command(list_cmd, name="ls")
-cli.add_command(read, name="r")
-cli.add_command(update, name="u")
-cli.add_command(delete, name="rm")
+cli.add_alias("add", "a")
+cli.add_alias("list", "ls")
+cli.add_alias("read", "r")
+cli.add_alias("update", "u")
+cli.add_alias("delete", "rm")
+cli.add_alias("startup", "s")
 
 
 def main():

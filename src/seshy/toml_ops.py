@@ -8,13 +8,12 @@ from tomlkit import TOMLDocument
 
 SESH_TOML_PATH = Path.home() / ".config" / "sesh" / "sesh.toml"
 
-DEFAULT_WINDOWS = ["editor", "dual", "lazydocker", "lazygit"]
+DEFAULT_WINDOWS = ["editor", "dual", "lazydocker"]
 
 WINDOW_SCRIPTS = {
     "editor": "win-editor-git",
     "dual": "win-split-dual",
     "lazydocker": "win-lazydocker",
-    "lazygit": "win-lazygit",
 }
 
 
@@ -77,18 +76,20 @@ def generate_session_block(name: str, path: str, icon: str, number: int) -> str:
         "[[session]]",
         f'name = "{full_name}"',
         f'path = "{path}"',
-        f'windows = {DEFAULT_WINDOWS}',
+        f"windows = {DEFAULT_WINDOWS}",
         "",
     ]
 
     for win_name in DEFAULT_WINDOWS:
         script = WINDOW_SCRIPTS.get(win_name, f"win-{win_name}")
-        lines.extend([
-            "[[window]]",
-            f'name = "{win_name}"',
-            f'startup_script = "{script}"',
-            "",
-        ])
+        lines.extend(
+            [
+                "[[window]]",
+                f'name = "{win_name}"',
+                f'startup_script = "{script}"',
+                "",
+            ]
+        )
 
     return "\n".join(lines)
 
