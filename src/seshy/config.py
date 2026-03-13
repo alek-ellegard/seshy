@@ -65,6 +65,21 @@ def get_default_icon() -> str:
     return str(config.get("icons", {}).get("default", DEFAULT_ICON))
 
 
+def get_quick_windows() -> list[dict[str, str]]:
+    """Get window definitions for quick mode from config.
+
+    Returns list of {name, startup_script} dicts.
+    Empty list if not configured — session created without windows.
+
+    Configure in ~/.config/seshy/config.toml:
+        [[quick.windows]]
+        name = "editor"
+        startup_script = "win-editor-git"
+    """
+    config = _load_config()
+    return list(config.get("quick", {}).get("windows", []))
+
+
 def get_startup_groups() -> dict[str, list[str]]:
     """Get startup groups mapping group names to session patterns."""
     config = _load_config()
