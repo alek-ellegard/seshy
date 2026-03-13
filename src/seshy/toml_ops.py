@@ -6,15 +6,9 @@ from pathlib import Path
 import tomlkit
 from tomlkit import TOMLDocument
 
+from .config import get_quick_windows
+
 SESH_TOML_PATH = Path.home() / ".config" / "sesh" / "sesh.toml"
-
-DEFAULT_WINDOWS = ["editor", "dual", "lazydocker"]
-
-WINDOW_SCRIPTS = {
-    "editor": "win-editor-git",
-    "dual": "win-split-dual",
-    "lazydocker": "win-lazydocker",
-}
 
 
 def load_config() -> TOMLDocument:
@@ -67,8 +61,9 @@ def get_session_line_number(name: str) -> int | None:
 
 
 def generate_session_block(name: str, path: str, icon: str, number: int) -> str:
-    """Generate a session block with windows."""
+    """Generate a session block, with windows from config if configured."""
     full_name = f"{number} {name} {icon}"
+    windows = get_quick_windows()
 
     lines = [
         "# ---",
@@ -76,17 +71,20 @@ def generate_session_block(name: str, path: str, icon: str, number: int) -> str:
         "[[session]]",
         f'name = "{full_name}"',
         f'path = "{path}"',
-        f"windows = {DEFAULT_WINDOWS}",
-        "",
     ]
 
-    for win_name in DEFAULT_WINDOWS:
-        script = WINDOW_SCRIPTS.get(win_name, f"win-{win_name}")
+    if windows:
+        win_names = [w["name"] for w in windows]
+        lines.append(f"windows = {win_names}")
+
+    lines.append("")
+
+    for w in windows:
         lines.extend(
             [
                 "[[window]]",
-                f'name = "{win_name}"',
-                f'startup_script = "{script}"',
+                f'name = "{w["name"]}"',
+                f'startup_script = "{w["startup_script"]}"',
                 "",
             ]
         )

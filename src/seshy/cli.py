@@ -117,6 +117,41 @@ def startup(group: str | None):
     startup_workflow.run(group)
 
 
+@cli.command()
+@click.pass_context
+def config(ctx):
+    """Show config path and available options.
+
+    \b
+    Config file: ~/.config/seshy/config.toml
+
+    \b
+    [icons]
+    list = ["💻", "🚀", ...]    # icons shown in fzf picker
+    default = "💻"               # icon used by add -q
+
+    \b
+    [paths]
+    base = ["~/code", ...]       # base paths for project navigation
+
+    \b
+    [[quick.windows]]            # windows added by `add -q`
+    name = "editor"              # (omit section for no windows)
+    startup_script = "win-editor-git"
+
+    \b
+    [groups]
+    work = ["dotfiles*", "proj*"]  # session patterns for `startup`
+    """
+    from .config import CONFIG_PATH
+    click.echo(f"Config: {CONFIG_PATH}")
+    if CONFIG_PATH.exists():
+        click.echo("")
+        click.echo(CONFIG_PATH.read_text())
+    else:
+        click.echo("No config file found. One will be created on first use.")
+
+
 @cli.command("shell-path")
 def shell_path():
     """Print path to shell functions for sourcing."""
