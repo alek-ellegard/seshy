@@ -19,6 +19,10 @@ DEFAULT_BASE_PATHS = [
 
 DEFAULT_ICON = "💻"
 
+DEFAULT_QUICK_WINDOWS = [
+    {"name": "editor", "startup_script": "win-editor-git"},
+]
+
 
 def _ensure_config() -> None:
     """Create config file with defaults if it doesn't exist."""
@@ -69,15 +73,18 @@ def get_quick_windows() -> list[dict[str, str]]:
     """Get window definitions for quick mode from config.
 
     Returns list of {name, startup_script} dicts.
-    Empty list if not configured — session created without windows.
+    Defaults to a single "editor" window when not configured.
 
-    Configure in ~/.config/seshy/config.toml:
+    Configure in ~/.config/seshy/config.toml to override the default:
         [[quick.windows]]
         name = "editor"
         startup_script = "win-editor-git"
     """
     config = _load_config()
-    return list(config.get("quick", {}).get("windows", []))
+    windows = list(config.get("quick", {}).get("windows", []))
+    if not windows:
+        return [dict(window) for window in DEFAULT_QUICK_WINDOWS]
+    return windows
 
 
 def get_startup_groups() -> dict[str, list[str]]:

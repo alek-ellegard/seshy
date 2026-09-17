@@ -150,14 +150,14 @@ User: seshy startup [group]
 | **Session Numbering** | 50-range (51, 52, 53...) for branch sessions |
 | **Session Name Format** | `"{number} {name} {icon}"` (e.g., "52 feature-branch") |
 | **Path Format** | Tilde-prefixed paths (`~/code/...`) for portability |
-| **Window Defaults** | 4 windows per session: editor, dual, lazydocker, lazygit |
+| **Window Defaults** | 1 window per session by default: `editor`; or the windows declared under `[[quick.windows]]` in `config.toml`, in order |
 | **FZF Integration** | All interactive selection via `fzf` subprocess |
 
 ## Gotchas
 
 ### Dual Configuration Files
 - `~/.config/sesh/sesh.toml` - sesh's session config (this tool **modifies** it)
-- `~/.config/seshy/config.toml` - seshy's own settings (icons, paths, groups)
+- `~/.config/seshy/config.toml` - seshy's own settings (icons, paths, groups, quick.windows)
 
 ### Editor Integration
 `read` and `update` commands use `os.execvp()` to replace the process with nvim - they never return to Python.

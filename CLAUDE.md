@@ -59,8 +59,8 @@ src/seshy/
 
 **Key constants** in toml_ops.py:
 - `SESH_TOML_PATH`: `~/.config/sesh/sesh.toml`
-- `DEFAULT_WINDOWS`: `["editor", "dual", "lazydocker", "lazygit"]`
-- `WINDOW_SCRIPTS`: Maps window names to startup scripts
+
+Quick/add windows resolve via `get_quick_windows()` in config.py: one window (`editor`, `win-editor-git`) by default, or exactly the windows declared under `[[quick.windows]]` in `~/.config/seshy/config.toml`, in declaration order.
 
 ## Workflow Tools
 

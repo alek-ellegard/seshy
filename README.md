@@ -60,7 +60,7 @@ source "$(seshy shell-path)"
 
 ## Configuration
 
-Sessions are defined in `~/.config/sesh/sesh.toml`. Seshy preferences (icons, groups) live in `~/.config/seshy/config.toml` (auto-created on first use).
+Sessions are defined in `~/.config/sesh/sesh.toml`. Seshy preferences (icons, groups, quick-mode windows) live in `~/.config/seshy/config.toml` (auto-created on first use).
 
 ### Startup Groups
 

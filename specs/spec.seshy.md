@@ -109,7 +109,7 @@ The bash implementation works but requires too many prompts for the common case 
 | CLI name | `seshy` | Short, friendly |
 | Branch mode | Flag `-b` on add | Single command, more flexible than subcommand |
 | 5x numbering | Scan sesh.toml | Find highest 5x number and increment |
-| Windows array | Fixed default | `["editor", "dual", "lazydocker", "lazygit"]` |
+| Windows array | Configurable default | One `editor` window unless `[[quick.windows]]` in `config.toml` declares others |
 | Update UX | Open in editor | fzf select → nvim at line (simplest approach) |
 | Delete cleanup | Auto-cleanup | Remove session + associated windows |
 | fzf integration | Shell out | Subprocess to fzf, like bash version |
