@@ -1,12 +1,13 @@
 """Add session workflow."""
 
+import subprocess
 import sys
 
 import click
 
 from ..config import get_default_icon
 from ..fzf import fzf_select_icon, fzf_select_path_recursive
-from ..toml_ops import add_session, find_next_5x_number
+from ..toml_ops import SESH_TOML_PATH, add_session, find_next_5x_number
 from ..ui import confirm, preview_session
 from ..utils import get_cwd_as_path, get_parent_dir_name
 
@@ -49,6 +50,11 @@ def run(quick: bool) -> None:
 
     if confirm("Add this session?"):
         add_session(name, path, icon, number)
-        click.echo(f"Added session: {number} {name} {icon}")
+        message = f"Added session: {number} {name} {icon}"
+        click.echo(message)
+        subprocess.run(
+            ["claude-real", "-p", f"/organize-sesh-sessions {message}"],
+            cwd=SESH_TOML_PATH.parent,
+        )
     else:
         click.echo("Aborted.")
