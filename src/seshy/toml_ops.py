@@ -1,5 +1,6 @@
 """TOML operations for sesh.toml management."""
 
+import os
 import re
 from pathlib import Path
 
@@ -8,7 +9,10 @@ from tomlkit import TOMLDocument
 
 from .config import get_quick_windows
 
-SESH_TOML_PATH = Path.home() / ".config" / "sesh" / "sesh.toml"
+SESH_TOML_PATH = Path(
+    os.environ.get("SESH_CONFIG_PATH")
+    or Path.home() / ".config" / "sesh" / "sesh.toml"
+).expanduser()
 
 
 def load_config() -> TOMLDocument:

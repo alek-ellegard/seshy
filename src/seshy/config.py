@@ -1,10 +1,14 @@
 """Seshy configuration management."""
 
+import os
 from pathlib import Path
 
 import tomlkit
 
-CONFIG_PATH = Path.home() / ".config" / "seshy" / "config.toml"
+CONFIG_PATH = Path(
+    os.environ.get("SESHY_CONFIG_PATH")
+    or Path.home() / ".config" / "seshy" / "config.toml"
+).expanduser()
 
 DEFAULT_ICONS = [
     "💻", "🚀", "🔧", "📦", "🎯", "⚡", "🌟", "🔥", "💡",

@@ -62,6 +62,11 @@ source "$(seshy shell-path)"
 
 Sessions are defined in `~/.config/sesh/sesh.toml`. Seshy preferences (icons, groups) live in `~/.config/seshy/config.toml` (auto-created on first use).
 
+To keep these files elsewhere, export `SESH_CONFIG_PATH` for session definitions
+and `SESHY_CONFIG_PATH` for Seshy preferences. Both paths support `~` expansion.
+Without these variables, the existing default paths are preserved. Configure
+Sesh to read the same session file when using an override.
+
 ### Startup Groups
 
 Define groups in `~/.config/seshy/config.toml` to launch multiple sessions at once:
